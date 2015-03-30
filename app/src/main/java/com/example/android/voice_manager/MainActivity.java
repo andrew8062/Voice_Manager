@@ -1,4 +1,5 @@
 package com.example.android.voice_manager;
+
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -8,6 +9,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -16,11 +18,13 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.provider.AlarmClock;
+import android.speech.RecognitionListener;
 
 public class MainActivity extends Fragment {
 
     private TextView txtSpeechInput;
-    private Button btnSpeak;
+    private ImageButton btnSpeak;
     private final int REQ_CODE_SPEECH_INPUT = 100;
 
     @Override
@@ -31,7 +35,7 @@ public class MainActivity extends Fragment {
         View rootView = inflater.inflate(R.layout.activity_main, container, false);
 
         txtSpeechInput = (TextView) rootView.findViewById(R.id.txtSpeechInput);
-        btnSpeak = (Button) rootView.findViewById(R.id.btnSpeak);
+        btnSpeak = (ImageButton) rootView.findViewById(R.id.btnSpeak);
 
         // hide the action bar
         //getActionBar().hide();
@@ -49,7 +53,7 @@ public class MainActivity extends Fragment {
 
     /**
      * Showing google speech input dialog
-     * */
+     */
     private void promptSpeechInput() {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
@@ -68,7 +72,7 @@ public class MainActivity extends Fragment {
 
     /**
      * Receiving speech input
-     * */
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -80,11 +84,23 @@ public class MainActivity extends Fragment {
                     ArrayList<String> result = data
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     txtSpeechInput.setText(result.get(0));
+                    resultProcess(result.get(0));
                 }
                 break;
             }
 
         }
+    }
+
+    private void resultProcess(String s) {
+        Intent i = new Intent(AlarmClock.ACTION_SET_ALARM);
+        i.putExtra(AlarmClock.EXTRA_HOUR, 9);
+        i.putExtra(AlarmClock.EXTRA_MINUTES, 37);
+        i.putExtra(AlarmClock.EXTRA_MESSAGE, "From voice manager");
+        i.putExtra(AlarmClock.EXTRA_SKIP_UI, true);
+
+        startActivity(i);
+
     }
 //
 //    @Override
@@ -96,3 +112,4 @@ public class MainActivity extends Fragment {
 
 
 }
+
