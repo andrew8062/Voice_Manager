@@ -9,6 +9,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -27,6 +28,11 @@ public class MainActivity extends Fragment {
     private ImageButton btnSpeak;
     private final int REQ_CODE_SPEECH_INPUT = 100;
 
+    private SpeechRecognizer sr;
+
+    private final String TAG="vm:Main";
+
+    private boolean mSpeechOn = false;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -36,19 +42,34 @@ public class MainActivity extends Fragment {
 
         txtSpeechInput = (TextView) rootView.findViewById(R.id.txtSpeechInput);
         btnSpeak = (ImageButton) rootView.findViewById(R.id.btnSpeak);
+        sr = SpeechRecognizer.createSpeechRecognizer(getActivity());
+        sr.setRecognitionListener(new listener());
 
+        btnSpeak.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,getActivity().getPackageName());
+                intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,1);
+                sr.startListening(intent);
+                Log.i("TAG","start");
+
+
+                //promptSpeechInput();
+            }
+        });
         // hide the action bar
         //getActionBar().hide();
 
-        btnSpeak.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                promptSpeechInput();
-            }
-        });
         return rootView;
 
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        sr.destroy();
     }
 
     /**
@@ -102,7 +123,54 @@ public class MainActivity extends Fragment {
         startActivity(i);
 
     }
-//
+class listener implements RecognitionListener
+{
+    public void onReadyForSpeech(Bundle params)
+    {
+        Log.d(TAG, "onReadyForSpeech");
+    }
+    public void onBeginningOfSpeech()
+    {
+        Log.d(TAG, "onBeginningOfSpeech");
+    }
+    public void onRmsChanged(float rmsdB)
+    {
+        Log.d(TAG, "onRmsChanged");
+    }
+    public void onBufferReceived(byte[] buffer)
+    {
+        Log.d(TAG, "onBufferReceived");
+    }
+    public void onEndOfSpeech()
+    {
+        Log.d(TAG, "onEndofSpeech");
+    }
+    public void onError(int error)
+    {
+        Log.d(TAG,  "error " +  error);
+        txtSpeechInput.setText("error " + error);
+    }
+    public void onResults(Bundle results)
+    {
+        String str = new String();
+        Log.d(TAG, "onResults " + results);
+        ArrayList data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+        for (int i = 0; i < data.size(); i++)
+        {
+            Log.d(TAG, "result " + data.get(i));
+            str += data.get(i);
+        }
+        txtSpeechInput.setText("results: "+String.valueOf(data.size()));
+    }
+    public void onPartialResults(Bundle partialResults)
+    {
+        Log.d(TAG, "onPartialResults");
+    }
+    public void onEvent(int eventType, Bundle params)
+    {
+        Log.d(TAG, "onEvent " + eventType);
+    }
+}
 //    @Override
 //    public boolean onCreateOptionsMenu(Menu menu) {
 //        // Inflate the menu; this adds items to the action bar if it is present.
