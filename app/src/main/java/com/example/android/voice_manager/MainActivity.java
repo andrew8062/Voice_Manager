@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.provider.AlarmClock;
@@ -26,6 +27,7 @@ public class MainActivity extends Fragment {
 
     private TextView txtSpeechInput;
     private ImageButton btnSpeak;
+    private ProgressBar progressBar;
     private final int REQ_CODE_SPEECH_INPUT = 100;
 
     private SpeechRecognizer sr;
@@ -42,19 +44,34 @@ public class MainActivity extends Fragment {
 
         txtSpeechInput = (TextView) rootView.findViewById(R.id.txtSpeechInput);
         btnSpeak = (ImageButton) rootView.findViewById(R.id.btnSpeak);
+        progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar1);
+
+        progressBar.setVisibility(View.INVISIBLE);
+
         sr = SpeechRecognizer.createSpeechRecognizer(getActivity());
         sr.setRecognitionListener(new listener());
 
         btnSpeak.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,getActivity().getPackageName());
-                intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,1);
-                sr.startListening(intent);
-                Log.i("TAG","start");
+                if (!mSpeechOn) {
+                    mSpeechOn = true;
+                    progressBar.setVisibility(View.VISIBLE);
+                    progressBar.setIndeterminate(true);
 
+                    Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                    intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getActivity().getPackageName());
+                    intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+                    sr.startListening(intent);
+                    Log.i("TAG", "start");
+                }
+                else{
+                    mSpeechOn = false;
+                    progressBar.setIndeterminate(false);
+                    progressBar.setVisibility(View.INVISIBLE);
+                    sr.stopListening();
+                }
 
                 //promptSpeechInput();
             }
@@ -105,7 +122,7 @@ public class MainActivity extends Fragment {
                     ArrayList<String> result = data
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     txtSpeechInput.setText(result.get(0));
-                    resultProcess(result.get(0));
+                    setAlarm(result.get(0));
                 }
                 break;
             }
@@ -113,7 +130,7 @@ public class MainActivity extends Fragment {
         }
     }
 
-    private void resultProcess(String s) {
+    private void setAlarm(String s) {
         Intent i = new Intent(AlarmClock.ACTION_SET_ALARM);
         i.putExtra(AlarmClock.EXTRA_HOUR, 9);
         i.putExtra(AlarmClock.EXTRA_MINUTES, 37);
@@ -132,10 +149,15 @@ class listener implements RecognitionListener
     public void onBeginningOfSpeech()
     {
         Log.d(TAG, "onBeginningOfSpeech");
+        progressBar.setIndeterminate(false);
+        progressBar.setMax(10);
+
     }
     public void onRmsChanged(float rmsdB)
     {
         Log.d(TAG, "onRmsChanged");
+        progressBar.setProgress((int) rmsdB);
+
     }
     public void onBufferReceived(byte[] buffer)
     {
@@ -143,12 +165,15 @@ class listener implements RecognitionListener
     }
     public void onEndOfSpeech()
     {
+        mSpeechOn = false;
         Log.d(TAG, "onEndofSpeech");
     }
     public void onError(int error)
     {
         Log.d(TAG,  "error " +  error);
         txtSpeechInput.setText("error " + error);
+        progressBar.setIndeterminate(true);
+
     }
     public void onResults(Bundle results)
     {
@@ -160,7 +185,7 @@ class listener implements RecognitionListener
             Log.d(TAG, "result " + data.get(i));
             str += data.get(i);
         }
-        txtSpeechInput.setText("results: "+String.valueOf(data.size()));
+        txtSpeechInput.setText(data.get(0).toString());
     }
     public void onPartialResults(Bundle partialResults)
     {
