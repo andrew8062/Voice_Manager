@@ -28,6 +28,7 @@ import org.w3c.dom.Text;
 public class MainActivity extends Fragment {
 
     private TextView txtSpeechInput;
+    private TextView tvOutput;
     private ImageButton btnSpeak;
     private ProgressBar progressBar;
     private final int REQ_CODE_SPEECH_INPUT = 100;
@@ -43,11 +44,12 @@ public class MainActivity extends Fragment {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
         View rootView = inflater.inflate(R.layout.activity_main, container, false);
-        txtSpeechInput = (TextView) rootView.findViewById(R.id.txtSpeechInput);
+        txtSpeechInput = (TextView) rootView.findViewById(R.id.tv_speechInput);
+        tvOutput = (TextView) rootView.findViewById(R.id.tv_result);
         btnSpeak = (ImageButton) rootView.findViewById(R.id.btnSpeak);
         progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar1);
         progressBar.setVisibility(View.INVISIBLE);
-        textProcessing = new TextProcessing();
+        textProcessing = new TextProcessing(getActivity());
         sr = SpeechRecognizer.createSpeechRecognizer(getActivity());
         sr.setRecognitionListener(new listener());
 
@@ -130,6 +132,7 @@ class listener implements RecognitionListener
     public void onResults(Bundle results)
     {
         String str = new String();
+        String result;
         Log.d(TAG, "onResults " + results);
         ArrayList data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
         for (int i = 0; i < data.size(); i++)
@@ -139,7 +142,8 @@ class listener implements RecognitionListener
         }
         //AlarmClockSetting.setAlarm(getActivity(), data.get(0).toString());
         txtSpeechInput.setText(data.get(0).toString());
-        textProcessing.start(data.get(0).toString());
+        result = textProcessing.start(data.get(0).toString());
+        tvOutput.append(result+"\n");
 
     }
     public void onPartialResults(Bundle partialResults)

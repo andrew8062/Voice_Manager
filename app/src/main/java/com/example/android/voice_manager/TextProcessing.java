@@ -1,8 +1,11 @@
 package com.example.android.voice_manager;
 
+import android.app.Activity;
 import android.util.Log;
 
 import java.lang.annotation.Target;
+import java.sql.Time;
+import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,11 +20,12 @@ public class TextProcessing {
     private String[] targetWord_morning = {"上午", "早上"};
     private String[] targetWord_afternoon = {"下午", "晚上"};
     private String[] targetWord_duration = {"後"};
-
-    public TextProcessing() {
+    private Activity mActivity;
+    public TextProcessing(Activity activity) {
+        mActivity = activity;
     }
 
-    public int[] start(String s) {
+    public String  start(String s) {
         TargetWordSensor targetWordSensor;
         targetWordSensor = new TargetWordSensor();
 
@@ -34,26 +38,42 @@ public class TextProcessing {
         targetWordSensor.afternoon = checkTargetWord(targetWord_afternoon, s);
         targetWordSensor.duration = checkTargetWord(targetWord_duration, s);
 
-        Pattern pattern = Pattern.compile(".*?(\\d+).*?(\\d+).*");
         Log.d(TAG, "input: "+s);
-        Matcher matcher = pattern.matcher(s);
 
 
-        if (targetWordSensor.action.equals("") || targetWordSensor.hour.equals("") || targetWordSensor.min.equals("")) {
-            return new int[]{-1, -1, -1};
-
+        if (targetWordSensor.action.equals("") && targetWordSensor.hour.equals("") && targetWordSensor.min.equals("")) {
+            return "invalid command";
         }
         //if both hour and minute are not empty and action is 鬧鐘
         else if(targetWordSensor.action.equals("鬧鐘") && !targetWordSensor.hour.equals("") && !targetWordSensor.min.equals("")){
+            Pattern pattern = Pattern.compile(".*?(\\d+).*?(\\d+).*");
+            Matcher matcher = pattern.matcher(s);
             matcher.find();
-            Log.d(TAG, "group 1: "+matcher.group(1));
             int hour = Integer.valueOf(matcher.group(1));
             int min = Integer.valueOf(matcher.group(2));
-            Log.d(TAG, "" + matcher.group());
-            return new int[] {1, Integer.valueOf(matcher.group(1)), Integer.valueOf(matcher.group(2))};
+            if(!targetWordSensor.afternoon.equals(""))
+                hour+=12;
+            AlarmClockSetting.setAlarm(mActivity, hour, min, -1);
+            return "successful set up a alarm at "+hour+":"+min;
         }
-        return new int[]{-1, -1, -1};
+        else if(targetWordSensor.action.equals("鬧鐘") && !targetWordSensor.min.equals("") && !targetWordSensor.duration.equals("")){
+            Calendar calendar = Calendar.getInstance();
+            Pattern pattern = Pattern.compile(".*?(\\d+).*");
+            Matcher matcher = pattern.matcher(s);
+            matcher.find();
+            int hour = calendar.get(Calendar.HOUR_OF_DAY);
+            int min = calendar.get(Calendar.MINUTE) +1;
+            min += Integer.valueOf(matcher.group(1));
+            if(min > 59){
+                hour+=1;
+                min%=60;
+            }
+            AlarmClockSetting.setAlarm(mActivity, hour, min, -1);
+            return "successful set up a alarm at "+hour+":"+min;
 
+        }
+
+        return "invalid command";
     }
 
     private String replaceTextNumberToNumerical(String str) {
