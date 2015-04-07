@@ -1,7 +1,10 @@
 package com.example.android.voice_manager;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.lang.annotation.Target;
 import java.sql.Time;
@@ -25,7 +28,7 @@ public class TextProcessing {
         mActivity = activity;
     }
 
-    public String  start(String s) {
+    public String  process(String s) {
         TargetWordSensor targetWordSensor;
         targetWordSensor = new TargetWordSensor();
 
@@ -97,6 +100,31 @@ public class TextProcessing {
             }
         }
         return "";
+    }
+
+    private void start(final String s){
+        boolean returnValue;
+        AlertDialog.Builder dialog = new AlertDialog.Builder(mActivity);
+        dialog.setTitle("Title");
+        dialog.setMessage(s);
+        dialog.setIcon(android.R.drawable.ic_dialog_alert);
+        dialog.setCancelable(false);
+        dialog.setPositiveButton("確定", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                
+                Toast.makeText(mActivity, "確定", Toast.LENGTH_SHORT).show();
+                process(s);
+            }
+        });
+        dialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                // TODO Auto-generated method stub
+                Toast.makeText(mActivity, "取消", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        dialog.show();
     }
 
     class TargetWordSensor {
