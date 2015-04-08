@@ -8,6 +8,8 @@ import android.app.Fragment;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
@@ -27,11 +29,13 @@ import org.w3c.dom.Text;
 
 public class MainActivity extends Fragment {
 
+    public static final int MSG_ALARM = 1;
+    private final int REQ_CODE_SPEECH_INPUT = 100;
+
     private TextView txtSpeechInput;
     private TextView tvOutput;
     private ImageButton btnSpeak;
     private ProgressBar progressBar;
-    private final int REQ_CODE_SPEECH_INPUT = 100;
 
     private SpeechRecognizer sr;
 
@@ -142,8 +146,7 @@ class listener implements RecognitionListener
         }
         //AlarmClockSetting.setAlarm(getActivity(), data.get(0).toString());
         txtSpeechInput.setText(data.get(0).toString());
-        result = textProcessing.start(data.get(0).toString());
-        tvOutput.append(result+"\n");
+        textProcessing.start(mHandler, data.get(0).toString());
 
     }
     public void onPartialResults(Bundle partialResults)
@@ -195,6 +198,18 @@ class listener implements RecognitionListener
         }
     }
 
+    private Handler mHandler = new Handler(){
+        public void handleMessage(Message msg){
+            super.handleMessage(msg);
+            switch(msg.what){
+                case MSG_ALARM:
+                    String result = (String)msg.obj;
+                    tvOutput.append(result+"\n");
+
+
+            }
+        }
+    };
 //    @Override
 //    public boolean onCreateOptionsMenu(Menu menu) {
 //        // Inflate the menu; this adds items to the action bar if it is present.

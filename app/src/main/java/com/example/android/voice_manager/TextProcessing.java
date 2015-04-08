@@ -3,6 +3,8 @@ package com.example.android.voice_manager;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -24,6 +26,7 @@ public class TextProcessing {
     private String[] targetWord_afternoon = {"下午", "晚上"};
     private String[] targetWord_duration = {"後"};
     private Activity mActivity;
+    private Handler mHandler;
     public TextProcessing(Activity activity) {
         mActivity = activity;
     }
@@ -79,7 +82,7 @@ public class TextProcessing {
         return "invalid command";
     }
 
-    private String replaceTextNumberToNumerical(String str) {
+    public String replaceTextNumberToNumerical(String str) {
         str = str.replaceAll("一", "1");
         str = str.replaceAll("二", "2");
         str = str.replaceAll("三", "3");
@@ -90,6 +93,8 @@ public class TextProcessing {
         str = str.replaceAll("八", "8");
         str = str.replaceAll("九", "9");
         str = str.replaceAll("十", "1");
+        str = str.replaceAll("半", "30分");
+
         return str;
     }
 
@@ -102,24 +107,31 @@ public class TextProcessing {
         return "";
     }
 
-    private void start(final String s){
-        boolean returnValue;
+    public void start(final Handler mHandler, final String s){
+        this.mHandler = mHandler;
         AlertDialog.Builder dialog = new AlertDialog.Builder(mActivity);
-        dialog.setTitle("Title");
+        dialog.setTitle("語音辨識");
         dialog.setMessage(s);
         dialog.setIcon(android.R.drawable.ic_dialog_alert);
         dialog.setCancelable(false);
         dialog.setPositiveButton("確定", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                
+
+                String returnValue;
                 Toast.makeText(mActivity, "確定", Toast.LENGTH_SHORT).show();
-                process(s);
+                returnValue = process(s);
+                Message msg = Message.obtain(mHandler, MainActivity.MSG_ALARM, returnValue);
+                msg.sendToTarget();
+
             }
         });
         dialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 // TODO Auto-generated method stub
                 Toast.makeText(mActivity, "取消", Toast.LENGTH_SHORT).show();
+                Message msg = Message.obtain(mHandler, MainActivity.MSG_ALARM, "user cancel");
+                msg.sendToTarget();
+
             }
         });
 
