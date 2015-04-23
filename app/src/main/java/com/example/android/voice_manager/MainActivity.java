@@ -14,22 +14,19 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.provider.AlarmClock;
 import android.speech.RecognitionListener;
 
-import org.w3c.dom.Text;
 
 public class MainActivity extends Fragment {
 
     public static final int MSG_ALARM = 1;
+    public static final int MSG_SPEECH_RESULT = 2;
     private final int REQ_CODE_SPEECH_INPUT = 100;
 
     private TextView txtSpeechInput;
@@ -96,8 +93,6 @@ public class MainActivity extends Fragment {
     }
 
 
-
-
 class listener implements RecognitionListener
 {
     public void onReadyForSpeech(Bundle params)
@@ -145,7 +140,7 @@ class listener implements RecognitionListener
             str += data.get(i);
         }
         //AlarmClockSetting.setAlarm(getActivity(), data.get(0).toString());
-        txtSpeechInput.setText(data.get(0).toString());
+        //txtSpeechInput.setText(data.get(0).toString());
         textProcessing.start(mHandler, data.get(0).toString());
 
     }
@@ -158,55 +153,59 @@ class listener implements RecognitionListener
         Log.d(TAG, "onEvent " + eventType);
     }
 }
-    /**
-     * Showing google speech input dialog
-     */
-    private void promptSpeechInput() {
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
-                getString(R.string.speech_prompt));
-        try {
-            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
-        } catch (ActivityNotFoundException a) {
-            Toast.makeText(getActivity(),
-                    getString(R.string.speech_not_supported),
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    /**
-     * Receiving speech input
-     */
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        switch (requestCode) {
-            case REQ_CODE_SPEECH_INPUT: {
-                if (resultCode == getActivity().RESULT_OK && null != data) {
-
-                    ArrayList<String> result = data
-                            .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    txtSpeechInput.setText(result.get(0));
-                }
-                break;
-            }
-
-        }
-    }
+//    /**
+//     * Showing google speech input dialog
+//     */
+//    private void promptSpeechInput() {
+//        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+//        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+//                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+//        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+//        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
+//                getString(R.string.speech_prompt));
+//        try {
+//            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
+//        } catch (ActivityNotFoundException a) {
+//            Toast.makeText(getActivity(),
+//                    getString(R.string.speech_not_supported),
+//                    Toast.LENGTH_SHORT).show();
+//        }
+//    }
+//
+//    /**
+//     * Receiving speech input
+//     */
+//    @Override
+//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//
+//        switch (requestCode) {
+//            case REQ_CODE_SPEECH_INPUT: {
+//                if (resultCode == getActivity().RESULT_OK && null != data) {
+//
+//                    ArrayList<String> result = data
+//                            .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+//                    txtSpeechInput.setText(result.get(0));
+//                }
+//                break;
+//            }
+//
+//        }
+//    }
 
     private Handler mHandler = new Handler(){
         public void handleMessage(Message msg){
             super.handleMessage(msg);
+            String result = "";
             switch(msg.what){
                 case MSG_ALARM:
-                    String result = (String)msg.obj;
+                    result = (String)msg.obj;
                     tvOutput.append(result+"\n");
-
-
+                    break;
+                case MSG_SPEECH_RESULT:
+                    result = (String)msg.obj;
+                    txtSpeechInput.setText(result);
+                    break;
             }
         }
     };
