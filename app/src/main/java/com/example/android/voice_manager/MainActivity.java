@@ -38,6 +38,7 @@ public class MainActivity extends Fragment {
 
     private final String TAG="vm:Main";
     private TextProcessing textProcessing;
+    private GoogleLocationServiceAPI googleLocationServiceAPI;
     private boolean mSpeechOn = false;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -50,9 +51,13 @@ public class MainActivity extends Fragment {
         btnSpeak = (ImageButton) rootView.findViewById(R.id.btnSpeak);
         progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar1);
         progressBar.setVisibility(View.INVISIBLE);
+
         textProcessing = new TextProcessing(getActivity());
         sr = SpeechRecognizer.createSpeechRecognizer(getActivity());
         sr.setRecognitionListener(new listener());
+        googleLocationServiceAPI = new GoogleLocationServiceAPI(getActivity());
+        googleLocationServiceAPI.start();
+
 
         btnSpeak.setOnClickListener(new View.OnClickListener() {
             @Override
