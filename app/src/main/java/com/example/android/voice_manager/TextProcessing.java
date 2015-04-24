@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import java.lang.annotation.Target;
 import java.sql.Time;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,9 +35,11 @@ public class TextProcessing {
     }
 
     public String process(String s) {
+
         TargetWordSensor targetWordSensor;
         targetWordSensor = new TargetWordSensor();
 
+        s = replaceTextNumberToNumerical(s);
 
         targetWordSensor.action = checkTargetWord(targetWord_action, s);
         targetWordSensor.hour = checkTargetWord(targetWord_hour, s);
@@ -69,36 +72,51 @@ public class TextProcessing {
         } else if (targetWordSensor.action.equals("鬧鐘") && (!targetWordSensor.hour.equals("") || !targetWordSensor.min.equals("")) && !targetWordSensor.duration.equals("")) {
             Calendar calendar = Calendar.getInstance();
             int hour = 0, min = 0;
-//            //一個半小時後
-//            if (targetWord_hour.equals("個")) {
-//                Pattern pattern = Pattern.compile(".*?(\\d+).*?(\\d+).*");
-//                Matcher matcher = pattern.matcher(s);
-//                matcher.find();
-//                hour = calendar.get(Calendar.HOUR_OF_DAY) + Integer.valueOf(matcher.group(1));
-//                min = calendar.get(Calendar.MINUTE) + 1 + Integer.valueOf(matcher.group(2));;
-//            }
+            ArrayList<Integer> numbersFromInput = new ArrayList<Integer>();
 
-            //30分鐘後
 
-            Pattern pattern = Pattern.compile(".*?(\\d+).*");
+            Pattern pattern = Pattern.compile("(\\d+)");
             Matcher matcher = pattern.matcher(s);
-            matcher.find();
-
-            hour = calendar.get(Calendar.HOUR_OF_DAY);
-            min = calendar.get(Calendar.MINUTE) + 1;
-            min += Integer.valueOf(matcher.group(1));
-            if (min > 59) {
-                hour += 1;
-                min %= 60;
+            while(matcher.find()){
+                numbersFromInput.add(Integer.valueOf(matcher.group(1)));
             }
 
-            AlarmClockSetting.setAlarm(mActivity, hour, min, -1);
+            if(targetWordSensor.hour.equals("") && !targetWordSensor.min.equals("")) {
+                hour = calendar.get(Calendar.HOUR_OF_DAY);
+                min = calendar.get(Calendar.MINUTE) + 1;
+                min += numbersFromInput.get(0);
+                if (min > 59) {
+                    hour += 1;
+                    min %= 60;
+                }
+            }else  if(!targetWordSensor.hour.equals("") && targetWordSensor.min.equals("")) {
+                hour = calendar.get(Calendar.HOUR_OF_DAY);
+                min = calendar.get(Calendar.MINUTE) + 1;
+                min += numbersFromInput.get(0);
+                if (hour > 23)
+                    hour %= 24;
+            }else if(targetWordSensor.hour.equals("") && targetWordSensor.min.equals("") && numbersFromInput.size() == 2){
+                hour = calendar.get(Calendar.HOUR_OF_DAY);
+                min = calendar.get(Calendar.MINUTE) + 1;
+                hour += numbersFromInput.get(0);
+                min += numbersFromInput.get(1);
+                if (min > 59) {
+                    hour += 1;
+                    min %= 60;
+                }
+                if (hour > 23)
+                    hour %= 24;
+
+            }
+
+
+                AlarmClockSetting.setAlarm(mActivity, hour, min, -1);
             return "successful set up a alarm at " + hour + ":" + min;
         }
         return "invalid command";
     }
 
-    public String replaceTextNumberToNumerical(String str, boolean returnWithUnit) {
+    public String replaceTextNumberToNumerical(String str) {
         str = str.replaceAll("候", "後");
         str = str.replaceAll("十", "10");
         str = str.replaceAll("兩", "2");
@@ -111,10 +129,7 @@ public class TextProcessing {
         str = str.replaceAll("七", "7");
         str = str.replaceAll("八", "8");
         str = str.replaceAll("九", "9");
-        if (returnWithUnit)
-            str = str.replaceAll("半", "30分");
-        else
-            str = str.replaceAll("半", "30");
+        str = str.replaceAll("半", "30分");
 
         return str;
     }
@@ -129,11 +144,11 @@ public class TextProcessing {
     }
 
 
-    public void start(final Handler mHandler, String s) {
+    public void start(final Handler mHandler, final String s) {
         this.mHandler = mHandler;
         AlertDialog.Builder dialog = new AlertDialog.Builder(mActivity);
-        final String speechResult = replaceTextNumberToNumerical(s, true);
-        Message msg = Message.obtain(mHandler, MainActivity.MSG_SPEECH_RESULT, speechResult);
+        //final String speechResult = replaceTextNumberToNumerical(s);
+        Message msg = Message.obtain(mHandler, MainActivity.MSG_SPEECH_RESULT, s);
         msg.sendToTarget();
         dialog.setTitle("語音辨識");
         dialog.setMessage(s);
@@ -144,7 +159,7 @@ public class TextProcessing {
 
                 String returnValue;
                 Toast.makeText(mActivity, "確定", Toast.LENGTH_SHORT).show();
-                returnValue = process(speechResult);
+                returnValue = process(s);
                 Message msg = Message.obtain(mHandler, MainActivity.MSG_ALARM, returnValue);
                 msg.sendToTarget();
             }

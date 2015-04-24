@@ -56,7 +56,7 @@ public class MainActivity extends Fragment {
         sr = SpeechRecognizer.createSpeechRecognizer(getActivity());
         sr.setRecognitionListener(new listener());
         googleLocationServiceAPI = new GoogleLocationServiceAPI(getActivity());
-        googleLocationServiceAPI.start();
+        //googleLocationServiceAPI.start();
 
 
         btnSpeak.setOnClickListener(new View.OnClickListener() {
