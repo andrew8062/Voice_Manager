@@ -1,11 +1,8 @@
 package com.example.android.voice_manager;
 
 import java.util.ArrayList;
-import java.util.Locale;
 
-import android.app.Activity;
 import android.app.Fragment;
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,9 +16,10 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.speech.RecognitionListener;
 
+import com.example.android.voice_manager.alarm.*;
+import com.example.android.voice_manager.database.ItemDAO;
 
 public class MainActivity extends Fragment {
 
@@ -39,6 +37,7 @@ public class MainActivity extends Fragment {
     private final String TAG="vm:Main";
     private TextProcessing textProcessing;
     private GoogleLocationServiceAPI googleLocationServiceAPI;
+    private AlarmManagerHelper alarmMgr;
     private boolean mSpeechOn = false;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -46,16 +45,20 @@ public class MainActivity extends Fragment {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
         View rootView = inflater.inflate(R.layout.activity_main, container, false);
+        boolean startFromBroadcast = getArguments().getBoolean("broadcast");
         txtSpeechInput = (TextView) rootView.findViewById(R.id.tv_speechInput);
         tvOutput = (TextView) rootView.findViewById(R.id.tv_result);
         btnSpeak = (ImageButton) rootView.findViewById(R.id.btnSpeak);
         progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar1);
         progressBar.setVisibility(View.INVISIBLE);
+        googleLocationServiceAPI = new GoogleLocationServiceAPI(getActivity());
+        alarmMgr = new AlarmManagerHelper(getActivity());
 
-        textProcessing = new TextProcessing(getActivity());
+        textProcessing = new TextProcessing(getActivity(), alarmMgr);
         sr = SpeechRecognizer.createSpeechRecognizer(getActivity());
         sr.setRecognitionListener(new listener());
-        googleLocationServiceAPI = new GoogleLocationServiceAPI(getActivity());
+
+
         //googleLocationServiceAPI.start();
 
 
@@ -81,14 +84,25 @@ public class MainActivity extends Fragment {
                     sr.stopListening();
                 }
 
-                //promptSpeechInput();
             }
         });
         // hide the action bar
         //getActionBar().hide();
 
+        if(startFromBroadcast){
+            triggerAlarm();
+        }
+
+
         return rootView;
 
+    }
+
+
+
+    private void triggerAlarm() {
+        AlarmDialog alarmDialog = new AlarmDialog(getActivity());
+        alarmDialog.startAlarm();
     }
 
     @Override
@@ -97,6 +111,22 @@ public class MainActivity extends Fragment {
         sr.destroy();
     }
 
+    private Handler mHandler = new Handler(){
+        public void handleMessage(Message msg){
+            super.handleMessage(msg);
+            String result = "";
+            switch(msg.what){
+                case MSG_ALARM:
+                    result = (String)msg.obj;
+                    tvOutput.append(result+"\n");
+                    break;
+                case MSG_SPEECH_RESULT:
+                    result = (String)msg.obj;
+                    txtSpeechInput.setText(result);
+                    break;
+            }
+        }
+    };
 
 class listener implements RecognitionListener
 {
@@ -158,62 +188,9 @@ class listener implements RecognitionListener
         Log.d(TAG, "onEvent " + eventType);
     }
 }
-//    /**
-//     * Showing google speech input dialog
-//     */
-//    private void promptSpeechInput() {
-//        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-//        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-//                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-//        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-//        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
-//                getString(R.string.speech_prompt));
-//        try {
-//            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
-//        } catch (ActivityNotFoundException a) {
-//            Toast.makeText(getActivity(),
-//                    getString(R.string.speech_not_supported),
-//                    Toast.LENGTH_SHORT).show();
-//        }
-//    }
-//
-//    /**
-//     * Receiving speech input
-//     */
-//    @Override
-//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//
-//        switch (requestCode) {
-//            case REQ_CODE_SPEECH_INPUT: {
-//                if (resultCode == getActivity().RESULT_OK && null != data) {
-//
-//                    ArrayList<String> result = data
-//                            .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-//                    txtSpeechInput.setText(result.get(0));
-//                }
-//                break;
-//            }
-//
-//        }
-//    }
 
-    private Handler mHandler = new Handler(){
-        public void handleMessage(Message msg){
-            super.handleMessage(msg);
-            String result = "";
-            switch(msg.what){
-                case MSG_ALARM:
-                    result = (String)msg.obj;
-                    tvOutput.append(result+"\n");
-                    break;
-                case MSG_SPEECH_RESULT:
-                    result = (String)msg.obj;
-                    txtSpeechInput.setText(result);
-                    break;
-            }
-        }
-    };
+
+
 //    @Override
 //    public boolean onCreateOptionsMenu(Menu menu) {
 //        // Inflate the menu; this adds items to the action bar if it is present.

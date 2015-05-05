@@ -1,4 +1,4 @@
-package com.example.android.voice_manager;
+package com.example.android.voice_manager.alarm;
 
 import android.app.Activity;
 import android.content.Intent;

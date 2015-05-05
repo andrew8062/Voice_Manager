@@ -83,6 +83,15 @@ public class NavigationActivity extends Activity {
         switch (pos) {
             case 0:
                 fragment = new MainActivity();
+                Bundle bundle = new Bundle();
+                boolean startFromBroadcast = getIntent().getBooleanExtra("broadcast", false);
+
+                bundle.putBoolean("broadcast", startFromBroadcast);
+                fragment.setArguments(bundle);
+                fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
+                break;
+            case 1:
+                fragment = new AlarmListActivity();
                 fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
                 break;
         }
