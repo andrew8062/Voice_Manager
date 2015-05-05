@@ -7,6 +7,13 @@
     android:background="#000000">
 
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Currently No Alarms Exists"
+        android:textColor="@color/white"
+        android:id="@+id/alarm_textview" />
+
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"

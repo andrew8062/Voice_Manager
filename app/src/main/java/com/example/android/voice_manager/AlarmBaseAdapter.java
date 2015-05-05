@@ -1,6 +1,7 @@
 package com.example.android.voice_manager;
 
 import android.app.Activity;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,9 +29,10 @@ public class AlarmBaseAdapter extends BaseAdapter  {
     List<AlarmItem> alarms;
     private ViewTag viewTag;
     private String TAG = "vm:BaseAdapter";
-
-    public AlarmBaseAdapter(Activity activity) {
+    private Handler mHandler;
+    public AlarmBaseAdapter(Activity activity, Handler handler) {
         mActivity = activity;
+        mHandler = handler;
         itemDAO = new ItemDAO(activity);
         alarms = itemDAO.getAll();
     }
@@ -62,6 +64,8 @@ public class AlarmBaseAdapter extends BaseAdapter  {
 
         TextView tv_title = (TextView) view.findViewById(R.id.alarm_listvew_title);
         TextView tv_time = (TextView) view.findViewById(R.id.alarm_listvew_time);
+
+
 
         Date date = new Date(alarm.getTime());
         Format format = new SimpleDateFormat("HH:mm:ss");
@@ -105,6 +109,7 @@ public class AlarmBaseAdapter extends BaseAdapter  {
                 itemDAO.delete(alarmItem);
                 alarms = itemDAO.getAll();
                 alarmBaseAdapter.notifyDataSetChanged();
+                mHandler.obtainMessage(AlarmListActivity.MSG_CHECK_ALARMS).sendToTarget();
                 Toast.makeText(mActivity, "alarm id: "+alarmItem.getId()+" time: "+alarmItem.getTime(), Toast.LENGTH_SHORT).show();
             }
         }
