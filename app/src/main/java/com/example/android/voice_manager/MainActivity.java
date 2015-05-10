@@ -1,6 +1,7 @@
 package com.example.android.voice_manager;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import android.app.Fragment;
 import android.content.Intent;
@@ -20,11 +21,14 @@ import android.speech.RecognitionListener;
 
 import com.example.android.voice_manager.alarm.*;
 import com.example.android.voice_manager.database.ItemDAO;
+import com.example.android.voice_manager.heaptree.CustomComparator;
+import com.example.android.voice_manager.heaptree.Heap;
 
 public class MainActivity extends Fragment {
 
     public static final int MSG_ALARM = 1;
     public static final int MSG_SPEECH_RESULT = 2;
+    public static final int MSG_SETALARM = 3;
     private final int REQ_CODE_SPEECH_INPUT = 100;
 
     private TextView txtSpeechInput;
@@ -38,6 +42,8 @@ public class MainActivity extends Fragment {
     private TextProcessing textProcessing;
     private GoogleLocationServiceAPI googleLocationServiceAPI;
     private AlarmManagerHelper alarmMgr;
+    //private Heap<AlarmItem> minHeap;
+    private CustomComparator comparator;
     private boolean mSpeechOn = false;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -51,10 +57,14 @@ public class MainActivity extends Fragment {
         btnSpeak = (ImageButton) rootView.findViewById(R.id.btnSpeak);
         progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar1);
         progressBar.setVisibility(View.INVISIBLE);
+
+        comparator = new CustomComparator();
+        //minHeap = new Heap<AlarmItem>(comparator);
+
         googleLocationServiceAPI = new GoogleLocationServiceAPI(getActivity());
         alarmMgr = new AlarmManagerHelper(getActivity());
-
         textProcessing = new TextProcessing(getActivity(), alarmMgr);
+
         sr = SpeechRecognizer.createSpeechRecognizer(getActivity());
         sr.setRecognitionListener(new listener());
 
@@ -101,7 +111,7 @@ public class MainActivity extends Fragment {
 
 
     private void triggerAlarm() {
-        AlarmDialog alarmDialog = new AlarmDialog(getActivity());
+        AlarmDialog alarmDialog = new AlarmDialog(getActivity(), mHandler);
         alarmDialog.startAlarm();
     }
 
@@ -123,6 +133,10 @@ public class MainActivity extends Fragment {
                 case MSG_SPEECH_RESULT:
                     result = (String)msg.obj;
                     txtSpeechInput.setText(result);
+                    break;
+                case MSG_SETALARM:
+                    alarmMgr.setNextAlarm(getActivity());
+                    getActivity().getIntent().removeExtra("broadcast");
                     break;
             }
         }

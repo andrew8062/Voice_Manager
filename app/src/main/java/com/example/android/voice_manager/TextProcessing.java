@@ -75,9 +75,6 @@ public class TextProcessing {
             calendar.set(Calendar.MINUTE, min);
 
             //AlarmClockSetting.setAlarm(mActivity, hour, min, -1);
-            alarmMgr.setAlarm(calendar);
-
-            return "successful set up a alarm at " + calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE);
 
             //alarm clock in how many minutes later
         } else if (targetWordSensor.action.equals("鬧鐘") && (!targetWordSensor.hour.equals("") || !targetWordSensor.min.equals("")) && !targetWordSensor.duration.equals("")) {
@@ -91,44 +88,20 @@ public class TextProcessing {
                 numbersFromInput.add(Integer.valueOf(matcher.group(1)));
             }
             if (numbersFromInput.size() == 2) {
-//                hour = calendar.get(Calendar.HOUR_OF_DAY);
-//                min = calendar.get(Calendar.MINUTE) + 1;
-//
-//                hour += numbersFromInput.get(0);
-//                min += numbersFromInput.get(1);
-//                if (min > 59) {
-//                    hour += 1;
-//                    min %= 60;
-//                }
-//                if (hour > 23)
-//                    hour %= 24;
                 calendar.add(Calendar.HOUR_OF_DAY, numbersFromInput.get(0));
                 calendar.add(Calendar.MINUTE, numbersFromInput.get(1));
 
             }
             else if (targetWordSensor.hour.equals("") && !targetWordSensor.min.equals("")) {
-//                hour = calendar.get(Calendar.HOUR_OF_DAY);
-//                min = calendar.get(Calendar.MINUTE) + 1;
-//                min += numbersFromInput.get(0);
-//                if (min > 59) {
-//                    hour += 1;
-//                    min %= 60;
-//                }
                 calendar.add(Calendar.MINUTE, numbersFromInput.get(0));
 
             } else if (!targetWordSensor.hour.equals("") && targetWordSensor.min.equals("")) {
-//                hour = calendar.get(Calendar.HOUR_OF_DAY);
-//                min = calendar.get(Calendar.MINUTE) + 1;
-//                hour += numbersFromInput.get(0);
-//                if (hour > 23)
-//                    hour %= 24;
                 calendar.add(Calendar.HOUR_OF_DAY, numbersFromInput.get(1));
 
             }
-            //AlarmClockSetting.setAlarm(mActivity, hour, min, -1);
-            //calendar = Calendar.getInstance();
-            //calendar.add(Calendar.SECOND, 10);
-            alarmMgr.setAlarm(calendar);
+//            calendar = Calendar.getInstance();
+//            calendar.add(Calendar.SECOND, 20);
+            alarmMgr.insertAlarm(calendar);
 
             return "successful set up a alarm at " + calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE);
         }

@@ -58,6 +58,7 @@ public class AlarmBaseAdapter extends BaseAdapter  {
         if (null == view) {
             view = LayoutInflater.from(mActivity).inflate(R.layout.alarm_listview_element, null);
         }
+
         AlarmItem alarm = (AlarmItem) getItem(position);
         Button btn_delete = (Button) view.findViewById(R.id.alarm_listview_btn);
         btn_delete.setOnClickListener(new Button_Click(mActivity, this, position));
@@ -66,11 +67,9 @@ public class AlarmBaseAdapter extends BaseAdapter  {
         TextView tv_time = (TextView) view.findViewById(R.id.alarm_listvew_time);
 
 
-
         Date date = new Date(alarm.getTime());
         Format format = new SimpleDateFormat("HH:mm:ss");
 
-        String name = alarm.getName();
         tv_title.setText(alarm.getName());
         tv_time.setText(format.format(date));
 
@@ -106,6 +105,9 @@ public class AlarmBaseAdapter extends BaseAdapter  {
         public void onClick(View v) {
             if (v.getId() == R.id.alarm_listview_btn){
                 AlarmItem alarmItem = alarms.get(position);
+                if (alarmItem.getId() == itemDAO.getMostCurrent().getId()){
+                    mHandler.obtainMessage(AlarmListActivity.MSG_DELETE_ALARM).sendToTarget();
+                }
                 itemDAO.delete(alarmItem);
                 alarms = itemDAO.getAll();
                 alarmBaseAdapter.notifyDataSetChanged();

@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.example.android.voice_manager.alarm.AlarmItem;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -27,7 +28,7 @@ public class ItemDAO {
 
     public static final String CREATE_TABLE = "CREATE TABLE IF NOT EXISTS " + ALARM_TABLE + " ( "
             + COLUMN_ALARM_ID + " INTEGER primary key autoincrement, "
-            + COLUMN_ALARM_TIME + " TEXT NOT NULL, "
+            + COLUMN_ALARM_TIME + " INTEGER(10) NOT NULL, "
             + COLUMN_ALARM_VIBRATE + " INTEGER NOT NULL, "
             + COLUMN_ALARM_NAME + " TEXT NOT NULL)";
 
@@ -83,16 +84,25 @@ public class ItemDAO {
 
     // 讀取所有記事資料
     public List<AlarmItem> getAll() {
+        return deleteOutOfDateAlarms();
+    }
+    private List<AlarmItem> deleteOutOfDateAlarms(){
         List<AlarmItem> result = new ArrayList<>();
         Cursor cursor = db.query(
                 ALARM_TABLE, null, null, null, null, null, null, null);
-
         while (cursor.moveToNext()) {
             result.add(getRecord(cursor));
         }
-
         cursor.close();
+        Calendar calendar = Calendar.getInstance();
+        for (int i=result.size()-1; i>=0; i--){
+            if (calendar.getTimeInMillis() > result.get(i).getTime()) {
+                delete(result.get(i));
+                result.remove(i);
+            }
+        }
         return result;
+
     }
 
     // 把Cursor目前的資料包裝為物件
@@ -115,7 +125,6 @@ public class ItemDAO {
         if (cursor.moveToNext()) {
             result = cursor.getInt(0);
         }
-
         return result;
     }
     public boolean delete(AlarmItem item){
@@ -123,6 +132,25 @@ public class ItemDAO {
         String where = COLUMN_ALARM_ID + "=" + item.getId();
         // 執行修改資料並回傳修改的資料數量是否成功
         return db.delete(ALARM_TABLE, where,null) > 0;
+    }
+    public AlarmItem getMostCurrent(){
+        Cursor cursor = db.rawQuery("SELECT "+COLUMN_ALARM_ID+", min("+COLUMN_ALARM_TIME+"), "+COLUMN_ALARM_VIBRATE+", "+COLUMN_ALARM_NAME+" from "+ALARM_TABLE, null);
+        AlarmItem alarmItem = null;
+        if (cursor.moveToNext()){
+            alarmItem = new AlarmItem(cursor.getInt(0), cursor.getLong(1), cursor.getInt(2) == 1, cursor.getString(3));
+        }
+        cursor.close();
+        return alarmItem;
+    }
+    public AlarmItem popMostCurrent(){
+        Cursor cursor = db.rawQuery("SELECT "+COLUMN_ALARM_ID+", min("+COLUMN_ALARM_TIME+"), "+COLUMN_ALARM_VIBRATE+", "+COLUMN_ALARM_NAME+" from "+ALARM_TABLE, null);
+        AlarmItem alarmItem = null;
+        if (cursor.moveToNext()){
+            alarmItem = new AlarmItem(cursor.getInt(0), cursor.getLong(1), cursor.getInt(2) == 1, cursor.getString(3));
+        }
+        cursor.close();
+        delete(alarmItem);
+        return alarmItem;
     }
     public void deleteDatabase() {
         mContext.deleteDatabase(DATABASE_NAME);

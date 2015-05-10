@@ -3,12 +3,19 @@ package com.example.android.voice_manager.alarm;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Handler;
 import android.os.Vibrator;
 import android.view.WindowManager;
+
+import com.example.android.voice_manager.MainActivity;
+import com.example.android.voice_manager.NavigationActivity;
+import com.example.android.voice_manager.database.ItemDAO;
+
 
 /**
  * Created by Andrew on 4/27/2015.
@@ -19,13 +26,16 @@ public class AlarmDialog {
     private Vibrator vibrator;
     //private Context mContext;
     private Activity mActivity;
-
-    public AlarmDialog(Activity activity) {
+    private Handler mHandler;
+    public AlarmDialog(Activity activity, Handler handler) {
         mActivity = activity;
+        mHandler = handler;
     }
 
     public void startAlarm() {
 
+        ItemDAO itemDAO = new ItemDAO(mActivity);
+        itemDAO.popMostCurrent();
         //wake up screen
         mActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
@@ -80,6 +90,9 @@ public class AlarmDialog {
                 });
         AlertDialog alert = builder.create();
         alert.show();
+
+        mHandler.obtainMessage(MainActivity.MSG_SETALARM).sendToTarget();
+
     }
 
 }

@@ -1,26 +1,31 @@
 package com.example.android.voice_manager;
 
+import android.app.AlarmManager;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.example.android.voice_manager.alarm.AlarmManagerHelper;
+
+
 /**
  * Created by Andrew on 5/3/2015.
  */
 public class AlarmListActivity extends Fragment {
     public static final int MSG_CHECK_ALARMS = 1;
+    public static final int MSG_DELETE_ALARM = 2;
 
     ListView listView;
     TextView textView;
     AlarmBaseAdapter alarmBaseAdapter;
     View rootView;
+    AlarmManagerHelper alarmMgr;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -29,6 +34,7 @@ public class AlarmListActivity extends Fragment {
         rootView = inflater.inflate(R.layout.activity_alarm_list, container, false);
         listView = (ListView) rootView.findViewById(R.id.alarm_listview);
         textView = (TextView) rootView.findViewById(R.id.alarm_textview);
+        alarmMgr = new AlarmManagerHelper(getActivity());
 
         alarmBaseAdapter = new AlarmBaseAdapter(getActivity(), mHandler);
         listView.setAdapter(alarmBaseAdapter);
@@ -54,6 +60,10 @@ public class AlarmListActivity extends Fragment {
                 case MSG_CHECK_ALARMS:
                     check_alarms_exist();
                    break;
+
+                case MSG_DELETE_ALARM:
+                    alarmMgr.deleteAlarm(getActivity());
+                    break;
             }
         }
     };
