@@ -31,7 +31,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Button"
+        android:text="Delete"
         android:textColor="@color/white"
         android:id="@+id/alarm_listview_btn"
         android:layout_alignParentTop="true"

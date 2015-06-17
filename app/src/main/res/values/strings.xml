@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Voice_Manager</string>
+    <string name="app_name">Voice Manager</string>
 
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
@@ -9,10 +9,13 @@
     <string name="title_activity_navigation">Navigation</string>
     <string-array name="navigation_array">
         <item>Home</item>
-        <item>Seting</item>
-        <item>Debug</item>
+        <item>Alarms</item>
+        <item>Setting</item>
     </string-array>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="title_activity_maps">Map</string>
+
+
 
 </resources>

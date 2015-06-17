@@ -39,8 +39,6 @@ public class ItemDAO {
     public ItemDAO(Context context) {
         mContext = context;
         db = Database.getDatabase(context);
-
-
     }
 
     public void close() {

@@ -3,15 +3,21 @@ package com.example.android.voice_manager;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.android.voice_manager.alarm.AlarmManagerHelper;
+import com.google.android.gms.maps.model.LatLng;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,7 +26,7 @@ import java.util.regex.Pattern;
  */
 public class TextProcessing {
     private final String TAG = "vm:textprocessing";
-    private String[] targetWord_action = {"鬧鐘"};
+    private String[] targetWord_action = {"鬧鐘", "抵達"};
     private String[] targetWord_hour = {"點", "小時", ""};
     private String[] targetWord_min = {"分", "分鐘"};
     private String[] targetWord_morning = {"上午", "早上"};
@@ -29,10 +35,11 @@ public class TextProcessing {
     private Activity mActivity;
     private Handler mHandler;
     private AlarmManagerHelper alarmMgr;
+
     public TextProcessing(Activity activity, AlarmManagerHelper alarmMgr) {
         this.alarmMgr = alarmMgr;
         mActivity = activity;
-        
+
     }
 
     public String process(String s) {
@@ -59,51 +66,17 @@ public class TextProcessing {
 
         //if both hour and minute are not empty and action is 鬧鐘
         //alarm clock in a specific time
-        else if (targetWordSensor.action.equals("鬧鐘") && !targetWordSensor.hour.equals("") && !targetWordSensor.min.equals("") && targetWordSensor.duration.equals("")) {
-            Pattern pattern = Pattern.compile(".*?(\\d+).*?(\\d+).*");
-            Matcher matcher = pattern.matcher(s);
-            matcher.find();
-            int hour = Integer.valueOf(matcher.group(1));
-            int min = Integer.valueOf(matcher.group(2));
-            if (!targetWordSensor.afternoon.equals(""))
-                hour += 12;
-
-            int hour_of_day = calendar.get(Calendar.HOUR_OF_DAY);
-            if (hour_of_day > hour)
-                calendar.add(Calendar.DAY_OF_MONTH, 1);
-            calendar.set(Calendar.HOUR_OF_DAY, hour);
-            calendar.set(Calendar.MINUTE, min);
-
-            //AlarmClockSetting.setAlarm(mActivity, hour, min, -1);
-
-            //alarm clock in how many minutes later
+        else if (targetWordSensor.action.equals("鬧鐘") && !targetWordSensor.hour.equals("") && targetWordSensor.duration.equals("")) {
+            int[] alarm_time;
+            alarm_time = AlarmTextProcessing.createAlarmInSpecificTime(alarmMgr, s, targetWordSensor);
+            return "successful set up a alarm at " + alarm_time[0] + ":" + String.format("%02d", alarm_time[1]);
         } else if (targetWordSensor.action.equals("鬧鐘") && (!targetWordSensor.hour.equals("") || !targetWordSensor.min.equals("")) && !targetWordSensor.duration.equals("")) {
-            int hour = 0, min = 0;
-            ArrayList<Integer> numbersFromInput = new ArrayList<Integer>();
-
-
-            Pattern pattern = Pattern.compile("(\\d+)");
-            Matcher matcher = pattern.matcher(s);
-            while (matcher.find()) {
-                numbersFromInput.add(Integer.valueOf(matcher.group(1)));
-            }
-            if (numbersFromInput.size() == 2) {
-                calendar.add(Calendar.HOUR_OF_DAY, numbersFromInput.get(0));
-                calendar.add(Calendar.MINUTE, numbersFromInput.get(1));
-
-            }
-            else if (targetWordSensor.hour.equals("") && !targetWordSensor.min.equals("")) {
-                calendar.add(Calendar.MINUTE, numbersFromInput.get(0));
-
-            } else if (!targetWordSensor.hour.equals("") && targetWordSensor.min.equals("")) {
-                calendar.add(Calendar.HOUR_OF_DAY, numbersFromInput.get(1));
-
-            }
-//            calendar = Calendar.getInstance();
-//            calendar.add(Calendar.SECOND, 20);
-            alarmMgr.insertAlarm(calendar);
-
-            return "successful set up a alarm at " + calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE);
+            int[] alarm_time;
+            alarm_time = AlarmTextProcessing.createAlarmLapseTime(alarmMgr, s, targetWordSensor);
+            return "successful set up a alarm at " + alarm_time[0] + ":" + String.format("%02d", alarm_time[1]);
+        } else if (targetWordSensor.action.equals("抵達")) {
+            AlarmTextProcessing.locationAlarm(mActivity, s, mHandler);
+            return "success found the geolocaton of the address";
         }
         return "invalid command";
     }
@@ -140,31 +113,28 @@ public class TextProcessing {
     public void start(final Handler mHandler, final String s) {
         this.mHandler = mHandler;
         AlertDialog.Builder dialog = new AlertDialog.Builder(mActivity);
-        //final String speechResult = replaceTextNumberToNumerical(s);
-        Message msg = Message.obtain(mHandler, MainActivity.MSG_SPEECH_RESULT, s);
-        msg.sendToTarget();
         dialog.setTitle("語音辨識");
-        dialog.setMessage(s);
+        final EditText editText = new EditText(mActivity);
+        editText.setText(s);
+        dialog.setView(editText);
         dialog.setIcon(android.R.drawable.ic_dialog_alert);
         dialog.setCancelable(false);
         dialog.setPositiveButton("確定", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-
                 String returnValue;
-                Toast.makeText(mActivity, "確定", Toast.LENGTH_SHORT).show();
-                returnValue = process(s);
+                returnValue = process(editText.getText().toString());
                 Message msg = Message.obtain(mHandler, MainActivity.MSG_ALARM, returnValue);
                 msg.sendToTarget();
             }
         });
         dialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(mActivity, "取消", Toast.LENGTH_SHORT).show();
                 Message msg = Message.obtain(mHandler, MainActivity.MSG_ALARM, "user cancel");
                 msg.sendToTarget();
             }
         });
-
+        Message msg = Message.obtain(mHandler, MainActivity.MSG_SPEECH_RESULT, editText.getText().toString());
+        msg.sendToTarget();
         dialog.show();
     }
 

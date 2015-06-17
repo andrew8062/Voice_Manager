@@ -21,6 +21,8 @@ import com.example.android.voice_manager.database.ItemDAO;
  * Created by Andrew on 4/27/2015.
  */
 public class AlarmDialog {
+    public static final int ALARM_DIALOG = 0;
+    public static final int DESTINATION_DIALOG = 1;
 
     private MediaPlayer mediaPlayer;
     private Vibrator vibrator;
@@ -32,40 +34,26 @@ public class AlarmDialog {
         mHandler = handler;
     }
 
-    public void startAlarm() {
+    public void startAlarm(String message, int requestCode) {
 
+        //remove the current alarm from the database;
         ItemDAO itemDAO = new ItemDAO(mActivity);
         itemDAO.popMostCurrent();
-        //wake up screen
-        mActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
-                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        wakeUpScreen();
+        startVibrate();
+        startRingTone();
+        startDialog(message);
 
-        String alarmTonePath = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString();
-        mediaPlayer = new MediaPlayer();
-        vibrator = (Vibrator) mActivity.getSystemService(mActivity.VIBRATOR_SERVICE);
-        long[] pattern = {1000, 200, 200, 200};
-        vibrator.vibrate(pattern, 0);
+        if (requestCode == ALARM_DIALOG);
+            mHandler.obtainMessage(MainActivity.MSG_SETALARM).sendToTarget();
+    }
 
-        try {
-            mediaPlayer.setVolume(1.0f, 1.0f);
-            mediaPlayer.setDataSource(mActivity,
-                    Uri.parse(alarmTonePath));
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
-            mediaPlayer.setLooping(true);
-            mediaPlayer.prepare();
-            mediaPlayer.start();
-
-        } catch (Exception e) {
-            mediaPlayer.release();
-        }
-
+    private void startDialog(String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
         builder
                 .setTitle("ALARM!")
-                .setMessage("It's about time!")
+                .setMessage(message)
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
@@ -90,9 +78,35 @@ public class AlarmDialog {
                 });
         AlertDialog alert = builder.create();
         alert.show();
-
-        mHandler.obtainMessage(MainActivity.MSG_SETALARM).sendToTarget();
-
     }
 
+    private void startVibrate(){
+        vibrator = (Vibrator) mActivity.getSystemService(mActivity.VIBRATOR_SERVICE);
+        long[] pattern = {1000, 200, 200, 200};
+        vibrator.vibrate(pattern, 0);
+
+    }
+    private void startRingTone(){
+        String alarmTonePath = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString();
+        mediaPlayer = new MediaPlayer();
+        try {
+            mediaPlayer.setVolume(1.0f, 1.0f);
+            mediaPlayer.setDataSource(mActivity,
+                    Uri.parse(alarmTonePath));
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
+            mediaPlayer.setLooping(true);
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+
+        } catch (Exception e) {
+            mediaPlayer.release();
+        }
+    }
+    private void wakeUpScreen(){
+        //wake up screen
+        mActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD |
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
 }

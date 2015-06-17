@@ -49,6 +49,7 @@
             android:textColor="@color/white"
             android:textSize="15dp"
             android:textStyle="normal" />
+
         <ProgressBar
             android:id="@+id/progressBar1"
             style="?android:attr/progressBarStyleHorizontal"

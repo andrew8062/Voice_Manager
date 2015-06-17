@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <integer name="destination_alarm_distance">5</integer>
+
+</resources>
