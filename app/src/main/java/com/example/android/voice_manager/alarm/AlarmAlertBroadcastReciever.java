@@ -19,6 +19,7 @@ public class AlarmAlertBroadcastReciever extends BroadcastReceiver {
         Intent i = new Intent(context, NavigationActivity.class);
         final GlobalClass globalVariable = (GlobalClass) context.getApplicationContext();
         globalVariable.setAlarmActive(true);
+        globalVariable.setAlarmMessage("Alarm Clock Activated");
         //i.putExtra("broadcast", true);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
         context.startActivity(i);

@@ -47,6 +47,7 @@ public class GoogleLocationServiceAPI  implements GoogleApiClient.ConnectionCall
         createLocationRequest();
         if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
+
         }
 
     }
@@ -90,7 +91,6 @@ public class GoogleLocationServiceAPI  implements GoogleApiClient.ConnectionCall
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-
     }
 
 
@@ -116,7 +116,6 @@ public class GoogleLocationServiceAPI  implements GoogleApiClient.ConnectionCall
             //Toast.makeText(mActivity, "Lat: " + mLastLocation.getLatitude() + " Long: " + mLastLocation.getLongitude(), Toast.LENGTH_SHORT).show();
         }
         startLocationUpdates();
-
     }
 
     @Override
@@ -133,10 +132,7 @@ public class GoogleLocationServiceAPI  implements GoogleApiClient.ConnectionCall
     public void onLocationChanged(Location location) {
         mLastLocation = location;
         userLocation.setUser_location(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()));
-        mHandler.obtainMessage(NavigationActivity.MSG_GPS, location).sendToTarget();
+        mHandler.obtainMessage(NavigationActivity.MSG_GPS_RETURN_INFO, location).sendToTarget();
         Toast.makeText(mActivity, "Latitude:" + mLastLocation.getLatitude()+", Longitude:"+mLastLocation.getLongitude(),Toast.LENGTH_LONG).show();
-
     }
-
-
 }

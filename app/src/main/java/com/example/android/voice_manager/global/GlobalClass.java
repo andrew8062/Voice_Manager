@@ -7,16 +7,34 @@ import android.app.Application;
  */
 public class GlobalClass extends Application {
     private boolean isAlarmActive;
-    private int destionaion_alarm_distance;
+    private String alarmMessage;
+    private boolean isVibrate;
+    private String alarmTonePath;
+    public static final String SHARED_PREFERENCE_VIBRATE_SETTING = "vibrate_setting";
 
-    public int getDestionaion_alarm_distance() {
-        return destionaion_alarm_distance;
+    public String getAlarmTonePath() {
+        return alarmTonePath;
     }
 
-    public void setDestionaion_alarm_distance(int destionaion_alarm_distance) {
-        this.destionaion_alarm_distance = destionaion_alarm_distance;
+    public void setAlarmTonePath(String alarmTonePath) {
+        this.alarmTonePath = alarmTonePath;
     }
 
+    public boolean isVibrate() {
+        return isVibrate;
+    }
+
+    public void setVibrate(boolean isVibrate) {
+        this.isVibrate = isVibrate;
+    }
+
+    public String getAlarmMessage() {
+        return alarmMessage;
+    }
+
+    public void setAlarmMessage(String alarmMessage) {
+        this.alarmMessage = alarmMessage;
+    }
 
     public boolean isAlarmActive() {
         return isAlarmActive;

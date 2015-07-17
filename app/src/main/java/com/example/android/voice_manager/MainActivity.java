@@ -1,6 +1,7 @@
 package com.example.android.voice_manager;
 
 import java.util.ArrayList;
+
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
@@ -34,7 +35,7 @@ public class MainActivity extends Fragment {
     public static final int MSG_SETALARM = 3;
     public static final int CODE_MAP = 4;
     public static final int MSG_USER_SPEAK_LOCATION = 5;
-    public static final int MSG_GPS = 6;
+    public static final int MSG_DELETE_DESTINATION = 7;
     private final String TAG = "vm:Main";
 
     //initial UI variables
@@ -42,26 +43,14 @@ public class MainActivity extends Fragment {
     private TextView tvOutput;
     private ImageButton btnSpeak;
     private ProgressBar progressBar;
-    private Button mButton;
     //initial variables
     private SpeechRecognizer sr;
     private TextProcessing textProcessing;
-    private GoogleLocationServiceAPI googleLocationServiceAPI;
     private AlarmManagerHelper alarmMgr;
     private UserLocation userLocation = new UserLocation();
+    private Handler navigationHandler;
     private boolean mSpeechOn = false;
     GlobalClass globalVariable = null;
-    OnDataPass dataPasser;
-    public interface OnDataPass {
-        public void onDataPass(UserLocation userLocation1);
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        dataPasser = (OnDataPass) activity;
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -72,23 +61,18 @@ public class MainActivity extends Fragment {
         tvOutput = (TextView) rootView.findViewById(R.id.tv_result);
         btnSpeak = (ImageButton) rootView.findViewById(R.id.btnSpeak);
         progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar1);
-
         globalVariable = (GlobalClass) getActivity().getApplicationContext();
-
         progressBar.setVisibility(View.INVISIBLE);
-
-        NavigationActivity activity = (NavigationActivity)getActivity();
-        googleLocationServiceAPI = activity.getGoogleLocationServiceAPI();
-        userLocation = getUserLocation();
-        //googleLocationServiceAPI = new GoogleLocationServiceAPI(getActivity(),userLocation, mHandler);
+        alarmMgr = new AlarmManagerHelper(getActivity());
+        NavigationActivity activity = (NavigationActivity) getActivity();
+        userLocation = activity.getUserLocation();
+        navigationHandler = activity.getNavigationHandler();
 
         alarmMgr = new AlarmManagerHelper(getActivity());
         textProcessing = new TextProcessing(getActivity(), alarmMgr);
 
         sr = SpeechRecognizer.createSpeechRecognizer(getActivity());
         sr.setRecognitionListener(new listener());
-
-
 
 
         btnSpeak.setOnClickListener(new View.OnClickListener() {
@@ -98,7 +82,6 @@ public class MainActivity extends Fragment {
                     mSpeechOn = true;
                     progressBar.setVisibility(View.VISIBLE);
                     progressBar.setIndeterminate(true);
-
                     Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                     intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
                     intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, getActivity().getPackageName());
@@ -118,24 +101,14 @@ public class MainActivity extends Fragment {
         //getActionBar().hide();
 
         if (globalVariable.isAlarmActive()) {
-            triggerAlarm("It is about time", AlarmDialog.ALARM_DIALOG);
+            triggerAlarm(globalVariable.getAlarmMessage(), AlarmDialog.ALARM_DIALOG);
         }
-
         return rootView;
-
     }
 
-    private UserLocation getUserLocation(){
-        NavigationActivity activity = (NavigationActivity)getActivity();
-        return activity.getUserLocation();
-    }
-    private void updateUserLocationDistance(double distance){
-        userLocation = getUserLocation();
-        userLocation.setDistance(distance);
-        dataPasser.onDataPass(userLocation);
-    }
 
     private void triggerAlarm(String message, int requestCode) {
+
         globalVariable.setAlarmActive(false);
         AlarmDialog alarmDialog = new AlarmDialog(getActivity(), mHandler);
         alarmDialog.startAlarm(message, requestCode);
@@ -156,7 +129,7 @@ public class MainActivity extends Fragment {
                     double lng = data.getDoubleExtra("lng", 0);
                     Log.d(TAG, "lat: " + lat + " lng: " + lng);
                     userLocation.setTarget_location(new LatLng(lat, lng));
-                    googleLocationServiceAPI.start();
+                    navigationHandler.obtainMessage(NavigationActivity.MSG_GPS_START).sendToTarget();
                 }
                 break;
         }
@@ -188,26 +161,17 @@ public class MainActivity extends Fragment {
                     //getActivity().getIntent().removeExtra("broadcast");
                     break;
                 case MSG_USER_SPEAK_LOCATION:
-                    userLocation = (UserLocation) msg.obj;
+                    UserLocation ret_userLocation = (UserLocation) msg.obj;
                     Intent mapActivity = new Intent(getActivity(), MapsActivity.class);
-                    mapActivity.putExtra("lat", userLocation.getTarget_location().latitude);
-                    mapActivity.putExtra("lng", userLocation.getTarget_location().longitude);
+                    mapActivity.putExtra("lat", ret_userLocation.getTarget_location().latitude);
+                    mapActivity.putExtra("lng", ret_userLocation.getTarget_location().longitude);
                     startActivityForResult(mapActivity, CODE_MAP);
-                    dataPasser.onDataPass(userLocation);
+                    userLocation.setAddress(ret_userLocation.getAddress());
+                    userLocation.setTarget_location(ret_userLocation.getTarget_location());
+
                     break;
-                case MSG_GPS:
-                    Double distance;
-                    Location location;
-                    location = (Location) msg.obj;
-                    userLocation.setUser_location(new LatLng(location.getLatitude(), location.getLongitude()));
-                    distance = DistanceOfTwoPoint.calculate(userLocation.getTarget_location().latitude, userLocation.getTarget_location().longitude
-                                                            ,userLocation.getUser_location().latitude, userLocation.getUser_location().longitude, 'K');
-                    //updateUserLocationDistance(distance);
-                    userLocation.setDistance(distance);
-                    if(distance < globalVariable.getDestionaion_alarm_distance()){
-                        googleLocationServiceAPI.stop();
-                        triggerAlarm("you are almost at your destination", AlarmDialog.DESTINATION_DIALOG);
-                    }
+                case MSG_DELETE_DESTINATION:
+                    userLocation.setAddress(null);
                     break;
             }
         }
@@ -269,14 +233,6 @@ public class MainActivity extends Fragment {
             Log.d(TAG, "onEvent " + eventType);
         }
     }
-
-
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
-//        return true;
-//    }
 
 
 }

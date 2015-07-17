@@ -47,7 +47,7 @@ public class AlarmTextProcessing {
         calendar.set(Calendar.SECOND, 0);
 
 //            calendar = Calendar.getInstance();
-//            calendar.add(Calendar.SECOND, 20);
+//            calendar.add(Calendar.SECOND, 10);
 
         alarmMgr.insertAlarm(calendar);
 
@@ -73,10 +73,10 @@ public class AlarmTextProcessing {
         else if (targetWordSensor.hour.equals("") && !targetWordSensor.min.equals("")) {
             calendar.add(Calendar.MINUTE, numbersFromInput.get(0));
         } else if (!targetWordSensor.hour.equals("") && targetWordSensor.min.equals("")) {
-            calendar.add(Calendar.HOUR_OF_DAY, numbersFromInput.get(1));
+            calendar.add(Calendar.HOUR_OF_DAY, numbersFromInput.get(0));
         }
 //            calendar = Calendar.getInstance();
-//            calendar.add(Calendar.SECOND, 20);
+//            calendar.add(Calendar.SECOND, 10);
         alarmMgr.insertAlarm(calendar);
         ret_val[0] = calendar.get(Calendar.HOUR_OF_DAY);
         ret_val[1] = calendar.get(Calendar.MINUTE);
@@ -85,23 +85,9 @@ public class AlarmTextProcessing {
     }
     public static void locationAlarm(Activity mActivity, String text, Handler mHandler){
         String strAddress = text.replace("抵達", "");
-        Geocoder geocoder = new Geocoder(mActivity);
         List<Address> address = null;
-        double[] latitude = {0};
-        double[] longtitude = {0};
 
-        try {
-            address = geocoder.getFromLocationName(strAddress, 5);
-//            if (address == null) {
-//                return null;
-//            }
-            CharSequence[] cs = new String[address.size()];
-            for (int i = 0; i < address.size(); i++) {
-                cs[i] = address.get(i).getAddressLine(0);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        address = UserLocation.addresToGeoLocation(strAddress, mActivity);
         LatLng latLng = new LatLng(address.get(0).getLatitude(), address.get(0).getLongitude());
         UserLocation userLocation = new UserLocation(null, latLng, strAddress);
         mHandler.obtainMessage(MainActivity.MSG_USER_SPEAK_LOCATION, userLocation).sendToTarget();

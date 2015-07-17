@@ -15,6 +15,7 @@ import android.view.WindowManager;
 import com.example.android.voice_manager.MainActivity;
 import com.example.android.voice_manager.NavigationActivity;
 import com.example.android.voice_manager.database.ItemDAO;
+import com.example.android.voice_manager.global.GlobalClass;
 
 
 /**
@@ -29,7 +30,11 @@ public class AlarmDialog {
     //private Context mContext;
     private Activity mActivity;
     private Handler mHandler;
+    private GlobalClass globalVariable = null;
+
     public AlarmDialog(Activity activity, Handler handler) {
+        globalVariable = (GlobalClass) activity.getApplicationContext();
+
         mActivity = activity;
         mHandler = handler;
     }
@@ -41,15 +46,21 @@ public class AlarmDialog {
         itemDAO.popMostCurrent();
 
         wakeUpScreen();
-        startVibrate();
+        if(globalVariable.isAlarmActive())
+            startVibrate();
         startRingTone();
         startDialog(message);
 
-        if (requestCode == ALARM_DIALOG);
+        if (requestCode == ALARM_DIALOG) {
             mHandler.obtainMessage(MainActivity.MSG_SETALARM).sendToTarget();
+        }
+        else if(requestCode == DESTINATION_DIALOG){
+            mHandler.obtainMessage(MainActivity.MSG_DELETE_DESTINATION).sendToTarget();
+        }
     }
 
     private void startDialog(String message) {
+
         AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
         builder
                 .setTitle("ALARM!")

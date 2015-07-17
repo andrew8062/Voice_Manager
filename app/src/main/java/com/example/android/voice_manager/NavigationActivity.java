@@ -33,12 +33,12 @@ import com.google.android.gms.maps.model.LatLng;
 import java.util.Calendar;
 
 
-public class NavigationActivity extends Activity implements MainActivity.OnDataPass {
+public class NavigationActivity extends Activity {
     public static final String PREFS_NAME = "MyPrefsFile";
 
-    public static final String DESTINATION_CODE = "destination_code";
-
-    public static final int MSG_GPS = 1;
+    public static final int MSG_GPS_RETURN_INFO = 1;
+    public static final int MSG_GPS_START = 2;
+    public static final int MSG_GPS_STOP = 3;
     private static final String TAG = "vm:navigation";
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
@@ -58,6 +58,7 @@ public class NavigationActivity extends Activity implements MainActivity.OnDataP
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
+        //initial variables
         globalVariable = (GlobalClass) getApplicationContext();
         mTitle = mDrawerTitle = getTitle();
         mNavigationTitles = getResources().getStringArray(R.array.navigation_array);
@@ -65,8 +66,13 @@ public class NavigationActivity extends Activity implements MainActivity.OnDataP
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         userLocation = new UserLocation();
         googleLocationServiceAPI = new GoogleLocationServiceAPI(this, userLocation, mHandler);
+        //get setting values
         checkPreferences();
+        setupDrawer(savedInstanceState);
 
+    }
+
+    private void setupDrawer(Bundle savedInstanceState) {
         mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, mNavigationTitles));
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
@@ -74,11 +80,6 @@ public class NavigationActivity extends Activity implements MainActivity.OnDataP
         getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setHomeButtonEnabled(true);
 
-        // Calling Application class (see application tag in AndroidManifest.xml)
-        //Set name and email in global/application context
-
-
-        // ActionBarDrawerToggle ties together the the proper interactions
         // between the sliding drawer and the action bar app icon
         mDrawerToggle = new ActionBarDrawerToggle(
                 this,
@@ -91,30 +92,25 @@ public class NavigationActivity extends Activity implements MainActivity.OnDataP
                 getActionBar().setTitle(mTitle);
                 invalidateOptionsMenu();
             }
-
             public void onDrawerOpened(View view) {
                 getActionBar().setTitle(mDrawerTitle);
                 invalidateOptionsMenu();
             }
         };
         mDrawerLayout.setDrawerListener(mDrawerToggle);
-        if (savedInstanceState == null || globalVariable.isAlarmActive()) {
+        if (globalVariable.isAlarmActive()) {
             selectItem(0);
         }
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putInt("destination_alarm_distance", globalVariable.getDestionaion_alarm_distance());
-        editor.commit();
-    }
 
     private void checkPreferences() {
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-        globalVariable.setDestionaion_alarm_distance(settings.getInt("destination_alarm_distance", getResources().getInteger(R.integer.destination_alarm_distance)));
+        globalVariable.setVibrate(settings.getBoolean(GlobalClass.SHARED_PREFERENCE_VIBRATE_SETTING,false));
+        userLocation.setAlarm_distance(settings.getInt(UserLocation.SHARED_PREFERENCE_DISTANCE_ALARM_KEY, UserLocation.DEFAULT_DISTANCE_ALARM));
+        Log.d(TAG, "setting:\nalarm distnace: "+userLocation.getAlarm_distance()+"\n"+
+                    "vibrate: "+globalVariable.isVibrate());
+
     }
 
     private void selectItem(int pos) {
@@ -130,9 +126,10 @@ public class NavigationActivity extends Activity implements MainActivity.OnDataP
                 fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
                 break;
             case 2:
+                fragment = new SettingActivity();
+                fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
                 break;
         }
-
         mDrawerList.setItemChecked(pos, true);
         setTitle(mNavigationTitles[pos]);
         mDrawerLayout.closeDrawer(mDrawerList);
@@ -145,10 +142,6 @@ public class NavigationActivity extends Activity implements MainActivity.OnDataP
         return super.onCreateOptionsMenu(menu);
     }
 
-    @Override
-    public void onDataPass(UserLocation userLocation) {
-        this.userLocation = userLocation;
-    }
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
         @Override
@@ -184,29 +177,35 @@ public class NavigationActivity extends Activity implements MainActivity.OnDataP
     public UserLocation getUserLocation() {
         return userLocation;
     }
-    public GoogleLocationServiceAPI getGoogleLocationServiceAPI(){
-        return googleLocationServiceAPI;
-    }
+//    public GoogleLocationServiceAPI getGoogleLocationServiceAPI(){
+//        return googleLocationServiceAPI;
+//    }
+    public Handler getNavigationHandler(){return mHandler;}
 
     private Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch(msg.what){
-                case MSG_GPS:
+                case MSG_GPS_RETURN_INFO:
                     Double distance;
                     Location location;
                     location = (Location) msg.obj;
                     userLocation.setUser_location(new LatLng(location.getLatitude(), location.getLongitude()));
                     distance = DistanceOfTwoPoint.calculate(userLocation.getTarget_location().latitude, userLocation.getTarget_location().longitude
                             , userLocation.getUser_location().latitude, userLocation.getUser_location().longitude, 'K');
-                    //updateUserLocationDistance(distance);
                     userLocation.setDistance(distance);
-                    if(distance < globalVariable.getDestionaion_alarm_distance()){
+                    if(distance < userLocation.getAlarm_distance()){
                         googleLocationServiceAPI.stop();
                         selectItem(0);
                         globalVariable.setAlarmActive(true);
+                        globalVariable.setAlarmMessage("You have reach your destination");
                     }
-
+                    break;
+                case MSG_GPS_START:
+                    googleLocationServiceAPI.start();
+                    break;
+                case MSG_GPS_STOP:
+                    googleLocationServiceAPI.stop();
                     break;
             }
 
