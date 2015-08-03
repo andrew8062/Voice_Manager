@@ -1,25 +1,15 @@
-package com.example.android.voice_manager;
+package com.example.android.voice_manager.textProcessing;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.location.Address;
-import android.location.Geocoder;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.widget.EditText;
-import android.widget.Toast;
 
+import com.example.android.voice_manager.MainActivity;
 import com.example.android.voice_manager.alarm.AlarmManagerHelper;
-import com.google.android.gms.maps.model.LatLng;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by smes on 2015/4/1.
@@ -57,8 +47,6 @@ public class TextProcessing {
         targetWordSensor.duration = checkTargetWord(targetWord_duration, s);
 
         Log.d(TAG, "input: " + s);
-
-        Calendar calendar = Calendar.getInstance();
 
         if (targetWordSensor.action.equals("") && targetWordSensor.hour.equals("") && targetWordSensor.min.equals("")) {
             return "invalid command";

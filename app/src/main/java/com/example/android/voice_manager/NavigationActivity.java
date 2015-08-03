@@ -6,31 +6,26 @@ import android.app.FragmentManager;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.location.Location;
+import android.media.RingtoneManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 
-import com.example.android.voice_manager.alarm.AlarmDialog;
 import com.example.android.voice_manager.global.GlobalClass;
 import com.example.android.voice_manager.location.DistanceOfTwoPoint;
 import com.example.android.voice_manager.location.GoogleLocationServiceAPI;
 import com.example.android.voice_manager.location.UserLocation;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
-
-import java.util.Calendar;
 
 
 public class NavigationActivity extends Activity {
@@ -65,7 +60,7 @@ public class NavigationActivity extends Activity {
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         userLocation = new UserLocation();
-        googleLocationServiceAPI = new GoogleLocationServiceAPI(this, userLocation, mHandler);
+        googleLocationServiceAPI = new GoogleLocationServiceAPI(this, userLocation, mHandler, globalVariable);
         //get setting values
         checkPreferences();
         setupDrawer(savedInstanceState);
@@ -92,44 +87,50 @@ public class NavigationActivity extends Activity {
                 getActionBar().setTitle(mTitle);
                 invalidateOptionsMenu();
             }
+
             public void onDrawerOpened(View view) {
                 getActionBar().setTitle(mDrawerTitle);
                 invalidateOptionsMenu();
             }
         };
         mDrawerLayout.setDrawerListener(mDrawerToggle);
-        if (globalVariable.isAlarmActive()) {
-            selectItem(0);
-        }
+        //if (globalVariable.isAlarmActive() || savedInstanceState == null) {
+        selectItem(0);
+        // }
     }
 
 
     private void checkPreferences() {
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-        globalVariable.setVibrate(settings.getBoolean(GlobalClass.SHARED_PREFERENCE_VIBRATE_SETTING,false));
+        globalVariable.setVibrate(settings.getBoolean(GlobalClass.SHARED_PREFERENCE_VIBRATE_SETTING, false));
+        globalVariable.setAlarmTonePath(settings.getString(GlobalClass.SHARED_PREFERENCE_RIGHTTONEPATH, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString()));
+        globalVariable.setGps_frequency(settings.getInt(GlobalClass.SHARED_PREFERENCE_GPS_FREQUENCY, 5));
         userLocation.setAlarm_distance(settings.getInt(UserLocation.SHARED_PREFERENCE_DISTANCE_ALARM_KEY, UserLocation.DEFAULT_DISTANCE_ALARM));
-        Log.d(TAG, "setting:\nalarm distnace: "+userLocation.getAlarm_distance()+"\n"+
-                    "vibrate: "+globalVariable.isVibrate());
+
+        Log.d(TAG, "setting:\nalarm distnace: " + userLocation.getAlarm_distance() + "\n" +
+                "vibrate: " + globalVariable.isVibrate());
 
     }
 
     private void selectItem(int pos) {
         FragmentManager fragmentManager = getFragmentManager();
-        Fragment fragment;
+        Fragment fragment = null;
         switch (pos) {
             case 0:
                 fragment = new MainActivity();
-                fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
                 break;
             case 1:
                 fragment = new AlarmListActivity();
-                fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
                 break;
             case 2:
                 fragment = new SettingActivity();
-                fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
                 break;
+            case 3:
+                fragment = new HelpActivity();
+                break;
+
         }
+        fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
         mDrawerList.setItemChecked(pos, true);
         setTitle(mNavigationTitles[pos]);
         mDrawerLayout.closeDrawer(mDrawerList);
@@ -177,15 +178,18 @@ public class NavigationActivity extends Activity {
     public UserLocation getUserLocation() {
         return userLocation;
     }
-//    public GoogleLocationServiceAPI getGoogleLocationServiceAPI(){
+
+    //    public GoogleLocationServiceAPI getGoogleLocationServiceAPI(){
 //        return googleLocationServiceAPI;
 //    }
-    public Handler getNavigationHandler(){return mHandler;}
+    public Handler getNavigationHandler() {
+        return mHandler;
+    }
 
     private Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            switch(msg.what){
+            switch (msg.what) {
                 case MSG_GPS_RETURN_INFO:
                     Double distance;
                     Location location;
@@ -194,9 +198,10 @@ public class NavigationActivity extends Activity {
                     distance = DistanceOfTwoPoint.calculate(userLocation.getTarget_location().latitude, userLocation.getTarget_location().longitude
                             , userLocation.getUser_location().latitude, userLocation.getUser_location().longitude, 'K');
                     userLocation.setDistance(distance);
-                    if(distance < userLocation.getAlarm_distance()){
+                    if (distance < userLocation.getAlarm_distance()) {
                         googleLocationServiceAPI.stop();
                         selectItem(0);
+                        userLocation.clear();
                         globalVariable.setAlarmActive(true);
                         globalVariable.setAlarmMessage("You have reach your destination");
                     }

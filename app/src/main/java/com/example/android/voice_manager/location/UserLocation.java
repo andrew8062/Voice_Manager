@@ -94,5 +94,9 @@ public class UserLocation {
         }
         return address;
     }
+    public void clear(){
+        target_location = null;
+        distance = Integer.MAX_VALUE;
+    }
 
 }

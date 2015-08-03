@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import com.example.android.voice_manager.MainActivity;
 import com.example.android.voice_manager.NavigationActivity;
+import com.example.android.voice_manager.global.GlobalClass;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -25,16 +26,19 @@ import com.google.android.gms.maps.model.LatLng;
 public class GoogleLocationServiceAPI  implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private static int REQUEST_CODE_RECOVER_PLAY_SERVICES = 200;
-    private final int UPDATE_INTERVAL = 10 * 1000; // 60 seconds
-    private final int FASTEST_UPDATE_INTERVAL = 5 * 1000; // 30 seconds
+    private  int update_interval = 5 * 60 * 1000; // 5 mins
+    private  int fastest_update_interval = 5 * 60 * 1000; // 5 mins
     private Activity mActivity;
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
     private LocationRequest mLocationRequest;
     private Handler mHandler;
     private UserLocation userLocation;
-
-    public GoogleLocationServiceAPI(Activity activity, UserLocation userLocation, Handler handler) {
+    private GlobalClass globalVariable;
+    public GoogleLocationServiceAPI(Activity activity, UserLocation userLocation, Handler handler, GlobalClass globalVariable) {
+        this.globalVariable = globalVariable;
+        update_interval = globalVariable.getGps_frequency() * 60 * 1000;
+        fastest_update_interval = update_interval/2;
         mActivity = activity;
         mHandler = handler;
         this.userLocation = userLocation;
@@ -96,8 +100,8 @@ public class GoogleLocationServiceAPI  implements GoogleApiClient.ConnectionCall
 
     protected void createLocationRequest(){
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(UPDATE_INTERVAL);
-        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL);
+        mLocationRequest.setInterval(update_interval);
+        mLocationRequest.setFastestInterval(fastest_update_interval);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
     protected void startLocationUpdates() {

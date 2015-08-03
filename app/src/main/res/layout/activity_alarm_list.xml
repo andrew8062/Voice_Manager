@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Alarms"
+        android:text="@string/alarms"
         android:id="@+id/alarm_title_textview"
         android:textColor="@color/white"
         android:gravity="center_horizontal"
@@ -27,7 +27,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Currently No Alarms Exists"
+        android:text="@string/no_alarm"
         android:textColor="@color/white"
         android:gravity="center_horizontal"
         android:layout_below="@+id/line1"
@@ -48,7 +48,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Destination"
+        android:text="@string/destination"
         android:textSize="@dimen/abc_text_size_medium_material"
         android:textColor="@color/white"
         android:id="@+id/destination_title_textview"
@@ -78,7 +78,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="delete"
+        android:text="@string/delete"
         android:id="@+id/destination_delete_button"
         android:visibility="invisible"
         android:layout_below="@+id/line2"
@@ -88,7 +88,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="edit"
+        android:text="@string/edit"
         android:id="@+id/destination_edit_button"
         android:visibility="invisible"
         android:layout_below="@+id/line2"

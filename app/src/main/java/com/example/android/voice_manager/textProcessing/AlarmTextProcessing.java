@@ -1,18 +1,14 @@
-package com.example.android.voice_manager;
+package com.example.android.voice_manager.textProcessing;
 
 import android.app.Activity;
-import android.app.AlarmManager;
 import android.location.Address;
-import android.location.Geocoder;
 import android.os.Handler;
-import android.util.Log;
 
+import com.example.android.voice_manager.MainActivity;
 import com.example.android.voice_manager.alarm.AlarmManagerHelper;
 import com.example.android.voice_manager.location.UserLocation;
 import com.google.android.gms.maps.model.LatLng;
 
-import java.io.IOException;
-import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -47,7 +43,7 @@ public class AlarmTextProcessing {
         calendar.set(Calendar.SECOND, 0);
 
 //            calendar = Calendar.getInstance();
-//            calendar.add(Calendar.SECOND, 10);
+//            calendar.add(Calendar.SECOND, 5);
 
         alarmMgr.insertAlarm(calendar);
 
@@ -76,7 +72,7 @@ public class AlarmTextProcessing {
             calendar.add(Calendar.HOUR_OF_DAY, numbersFromInput.get(0));
         }
 //            calendar = Calendar.getInstance();
-//            calendar.add(Calendar.SECOND, 10);
+//            calendar.add(Calendar.SECOND, 5);
         alarmMgr.insertAlarm(calendar);
         ret_val[0] = calendar.get(Calendar.HOUR_OF_DAY);
         ret_val[1] = calendar.get(Calendar.MINUTE);

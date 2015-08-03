@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
-import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -15,7 +14,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -23,9 +21,8 @@ import android.speech.RecognitionListener;
 
 import com.example.android.voice_manager.alarm.*;
 import com.example.android.voice_manager.global.GlobalClass;
-import com.example.android.voice_manager.location.DistanceOfTwoPoint;
-import com.example.android.voice_manager.location.GoogleLocationServiceAPI;
 import com.example.android.voice_manager.location.UserLocation;
+import com.example.android.voice_manager.textProcessing.TextProcessing;
 import com.google.android.gms.maps.model.LatLng;
 
 public class MainActivity extends Fragment {

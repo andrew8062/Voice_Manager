@@ -46,7 +46,7 @@ public class AlarmDialog {
         itemDAO.popMostCurrent();
 
         wakeUpScreen();
-        if(globalVariable.isAlarmActive())
+        if(globalVariable.isVibrate())
             startVibrate();
         startRingTone();
         startDialog(message);
@@ -98,7 +98,7 @@ public class AlarmDialog {
 
     }
     private void startRingTone(){
-        String alarmTonePath = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM).toString();
+        String alarmTonePath = globalVariable.getAlarmTonePath();
         mediaPlayer = new MediaPlayer();
         try {
             mediaPlayer.setVolume(1.0f, 1.0f);

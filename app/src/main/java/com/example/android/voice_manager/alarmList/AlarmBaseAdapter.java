@@ -1,4 +1,4 @@
-package com.example.android.voice_manager;
+package com.example.android.voice_manager.alarmList;
 
 import android.app.Activity;
 import android.os.Handler;
@@ -11,6 +11,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.android.voice_manager.AlarmListActivity;
+import com.example.android.voice_manager.R;
 import com.example.android.voice_manager.alarm.AlarmItem;
 import com.example.android.voice_manager.database.ItemDAO;
 

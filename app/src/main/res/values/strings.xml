@@ -11,6 +11,7 @@
         <item>Home</item>
         <item>Alarms</item>
         <item>Setting</item>
+        <item>help/about</item>
     </string-array>
     <string-array name="destination_range_array">
         <item>1</item>
@@ -28,7 +29,20 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_setting">SettingActivity</string>
+    <string name="title_activity_help">HelpActivity</string>
 
+    <string name="help_description">請在主頁面按下麥克風按鈕並講出以下指令即可使用\n想要使用鬧鐘請說出:\n&quot;鬧鐘X分鐘後&quot;或 &quot;鬧鐘上午6點30分&quot;\n想使用目的地鬧鐘請說出\n&quot;抵達(台北車站)&quot;</string>
+    <string name="alarms">Alarms</string>
+    <string name="no_alarm">Currently No Alarms Exists</string>
+    <string name="destination">Destination</string>
+    <string name="delete">delete</string>
+    <string name="edit">edit</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
+    <string name="destination_alarm_distance">Destination Alarm Trigger Distance</string>
+    <string name="ringtone">Ringtone</string>
+    <string name="vibrate">Vibrate</string>
+    <string name="gps_update_frequency">GPS update frequency</string>
 
 
 </resources>
