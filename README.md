@@ -2,7 +2,7 @@
 Voide Manager is an application that user can easily speak to it and make commands <br>
 Currently it has two commands that can be used. <br>
 1. alarms command <br>
-2. destination alarm command <br>
+2. destination alarm command (Trigger alarm if the destination is in short distance)<br>
 The main activity looks like below. <br>
 <img src="/screenshots/1.jpg" width="150"/><br>
 The UI only has one button to let user easily pick it up.<br>
