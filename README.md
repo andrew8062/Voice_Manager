@@ -11,14 +11,14 @@ If the app did't correctly understand what user was saying, they can modify it a
 <img src="/screenshots/2.jpg" width="150"/>
 <img src="/screenshots/3.jpg" width="150"/><br>
 Or the user can say "destination to (location)" in Chinese.<br>
-The app will pop-up a map shows the destination. If it is not correct, the user can click on the map to change the location.
+The app will pop-up a map shows the destination. If it is not correct, the user can click on the map to change the location.<br>
 <img src="/screenshots/9.jpg" width="150"/>
 <img src="/screenshots/6.jpg" width="150"/><br>
 Slightly slide the screen to the right or click the top right icon can bring the menu out<br>
 <img src="/screenshots/11.jpg" width="150"/><br>
 In the alarms, it shows all the alarms that are running.<br>
-<img src="/screenshots/7.jpg" width="150"/><br>
 In the settings, the user can change some simple values. For example, the ringtone or vibration. <br>
+<img src="/screenshots/7.jpg" width="150"/>
 <img src="/screenshots/10.jpg" width="150"/><br>
 
 
